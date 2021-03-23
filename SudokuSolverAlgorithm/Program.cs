@@ -6,6 +6,31 @@ namespace SudokuSolverAlgorithm
 {
     public class Program
     {
+        
+        public static SudokuModel SolveSudokuLayeredVariations(SudokuModel model)
+        {
+            SudokuModel returnmodel = new SudokuModel();
+            for (int i = 0; i < 9; i++)
+            {
+                for (int a = 0; a < 9; a++)
+                {
+                    if (model.Sudoku[i][a].value == 0)
+                    {
+                        returnmodel = SolveCellLogical(model.Sudoku[i][a], model);
+                        //if (returnmodel.FaultyBoard == true)
+                        //{
+                        //    return returnmodel;
+                        //}
+                    }
+                    if (i == 8 && a == 8)
+                    {
+                        return returnmodel;
+                    }
+                }
+            }
+            return returnmodel;
+        }
+
         public static SudokuModel SolveSudokuLogical(SudokuModel model)
         {
             SudokuModel returnmodel = new SudokuModel();
