@@ -11,6 +11,6 @@ namespace SudokuSolverAlgorithm
         public int row { get; set; }
         public int column { get; set; }
         public int square { get; set; }
-        public CellModel PreviousCell { get; set; }
+        public int amountofoptions { get; set; } = 0;
     }
 }
