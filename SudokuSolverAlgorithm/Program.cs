@@ -6,6 +6,7 @@ namespace SudokuSolverAlgorithm
 {
     public class Program
     {
+        //layer 2
         private static bool SolveSudokuLogical2(SudokuModel model)
         {
             for (int i = 0; i < model.Sudoku.Count; i++)
@@ -23,12 +24,89 @@ namespace SudokuSolverAlgorithm
                                 if (SolveSudokuLogical2(model))
                                     return true;
                                 else
+
                                     model.Sudoku[i][j].value = 0;
                             }
                         }
                         return false;
                     }
                 }
+            }
+            return true;
+        }
+        private static bool SolveSudokuGuessing(SudokuModel model)
+        {
+            Random rnd = new Random();
+            CalculateListOfOptions(model);
+            for (int i = 0; i < model.Sudoku.Count; i++)
+            {
+                for (int j = 0; j < model.Sudoku[0].Count; j++)
+                {
+                    if (model.Sudoku[i][j].value == 0)
+                    {
+                        if (model.Sudoku[i][j].amountofoptions == 1)
+                        {
+                            var randomnumber = rnd.Next(1, 10);
+                            do
+                            {
+                                if (CheckConstraints(model, i, j, randomnumber))
+                                {
+                                    model.Sudoku[i][j].value = randomnumber;
+                                    goto SolveSudoku;
+                                }
+                            }
+                            while (CheckConstraints(model, i, j, randomnumber) == false);
+                            for (int c = 1; c <= 9; c++)
+                            {
+                                if (CheckConstraints(model, i, j, c))
+                                {
+                                    model.Sudoku[i][j].value = c;
+                                    goto SolveSudoku;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            SolveSudoku:
+
+            for (int i = 0; i < model.Sudoku.Count; i++)
+            {
+                for (int j = 0; j < model.Sudoku[0].Count; j++)
+                {
+                    if (model.Sudoku[i][j].value == 0)
+                    {
+                        for (int c = 1; c <= 9; c++)
+                        {
+                            if (CheckConstraints(model, i, j, c))
+                            {
+                                model.Sudoku[i][j].value = c;
+
+                                if (SolveSudokuLogical2(model))
+                                    return true;
+                                else
+
+                                    model.Sudoku[i][j].value = 0;
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static bool CheckConstraints(SudokuModel model, int row, int col, int c)
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                if (model.Sudoku[i][col].value != 0 && model.Sudoku[i][col].value == c)
+                    return false;
+                if (model.Sudoku[row][i].value != 0 && model.Sudoku[row][i].value == c)
+                    return false;
+                if (model.Sudoku[3 * (row / 3) + i / 3][3 * (col / 3) + i % 3].value != 0 && model.Sudoku[3 * (row / 3) + i / 3][3 * (col / 3) + i % 3].value == c)
+                    return false;
             }
             return true;
         }
@@ -106,19 +184,6 @@ namespace SudokuSolverAlgorithm
                 }
             }
             return amounofoptions;
-        }
-        private static bool CheckConstraints(SudokuModel model, int row, int col, int c)
-        {
-            for (int i = 0; i < 9; i++)
-            {
-                if (model.Sudoku[i][col].value != 0 && model.Sudoku[i][col].value == c)
-                    return false;
-                if (model.Sudoku[row][i].value != 0 && model.Sudoku[row][i].value == c)
-                    return false;
-                if (model.Sudoku[3 * (row / 3) + i / 3][ 3 * (col / 3) + i % 3].value != 0 && model.Sudoku[3 * (row / 3) + i / 3][ 3 * (col / 3) + i % 3].value == c)
-                    return false;
-            }
-            return true;
         }
         public static SudokuModel SolveSudokuLayeredVariations(SudokuModel model)
         {
@@ -512,7 +577,7 @@ namespace SudokuSolverAlgorithm
                 } }
 
             };
-            SolveSudokuLogical3(SudokuBoard);
+            SolveSudokuGuessing(SudokuBoard);
             var solvedboard = SudokuBoard;
 
             string firstrow = "";
