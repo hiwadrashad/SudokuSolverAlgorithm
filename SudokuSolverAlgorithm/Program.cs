@@ -32,6 +32,81 @@ namespace SudokuSolverAlgorithm
             }
             return true;
         }
+
+        private static bool SolveSudokuLogical3(SudokuModel model)
+        {
+            bool? solves = null;
+            while (solves == null)
+            {
+
+                for (int i = 0; i < model.Sudoku.Count; i++)
+                {
+                    for (int j = 0; j < model.Sudoku[0].Count; j++)
+                    {
+                        if (model.Sudoku[i][j].value == 0)
+                        {
+                            for (int c = 1; c <= 9; c++)
+                            {
+                                CalculateListOfOptions(model);
+                                if (model.Sudoku[i][j].amountofoptions == 1)
+                                {
+                                    if (CheckConstraints(model, i, j, c))
+                                    {
+                                        model.Sudoku[i][j].value = c;
+
+                                        if (SolveSudokuLogical3(model))
+                                            solves = true;
+                                        else
+                                            model.Sudoku[i][j].value = 0;
+                                    }
+                                }
+                            }
+                            solves = false;
+                        }
+                    }
+                }
+                solves = true;
+            }
+            return true;
+        }
+        private static bool CalculateListOfOptions(SudokuModel model)
+        {
+            List<CellModel> listofoptions = new List<CellModel>();
+            for (int i = 0; i < model.Sudoku.Count; i++)
+            {
+                for (int j = 0; j < model.Sudoku[0].Count; j++)
+                {
+                    if (model.Sudoku[i][j].value == 0)
+                    {
+                        for (int c = 1; c <= 9; c++)
+                        {
+                            model.Sudoku[i][j].amountofoptions = CheckOptions(model,i,j,c);                               
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static int CheckOptions(SudokuModel model, int row, int col, int c)
+        {
+            int amounofoptions = 0;
+            for (int i = 0; i < 9; i++)
+            {
+                if (model.Sudoku[i][col].value != 0 && model.Sudoku[i][col].value == c)
+                    continue;
+                if (model.Sudoku[row][i].value != 0 && model.Sudoku[row][i].value == c)
+                    continue;
+                if (model.Sudoku[3 * (row / 3) + i / 3][3 * (col / 3) + i % 3].value != 0 && model.Sudoku[3 * (row / 3) + i / 3][3 * (col / 3) + i % 3].value == c)
+                    continue;
+                else
+                {
+                    amounofoptions++;
+                }
+            }
+            return amounofoptions;
+        }
         private static bool CheckConstraints(SudokuModel model, int row, int col, int c)
         {
             for (int i = 0; i < 9; i++)
@@ -108,6 +183,105 @@ namespace SudokuSolverAlgorithm
                     }
                 }
             }
+            return model;
+        }
+
+        public static SudokuModel SolveSudokuHierArchical2(SudokuModel model)
+        {
+
+            for (int i = 0; i < 99; i++)
+            {
+                var hierarchy = GenerateSudokuCellsHierarchical(model);
+
+
+
+                List<CellModel> ascendingoptionscellvalues = hierarchy.Where(x => x.amountofoptions == 1).ToList();
+                if (ascendingoptionscellvalues.Any())
+                {
+                    for (int x = 0; x < ascendingoptionscellvalues.Count; x++)
+                    {
+                        SolveCellLogical(ascendingoptionscellvalues[x], model);
+                    }
+                    continue;
+                }
+                //if (hierarchy.Where(x => x.amountofoptions == 2).ToList().Any())
+                //{ 
+                // List<CellModel> ascendingoptionscellvalues2 = hierarchy.Where(x => x.amountofoptions == 2).ToList();
+                //    for (int x = 0; x < ascendingoptionscellvalues2.Count; x++)
+                //    {
+                //        SolveCellLogical(ascendingoptionscellvalues2[x], model);
+                //    }
+                //    continue;
+                //}
+                //if (hierarchy.Where(x => x.amountofoptions == 3).ToList().Any())
+                //{
+                //    List<CellModel> ascendingoptionscellvalues3 = hierarchy.Where(x => x.amountofoptions == 3).ToList();
+                //    for (int x = 0; x < ascendingoptionscellvalues3.Count; x++)
+                //    {
+                //        SolveCellLogical(ascendingoptionscellvalues3[x], model);
+                //    }
+                //    continue;
+                //}
+                //if (hierarchy.Where(x => x.amountofoptions == 4).ToList().Any())
+                //{
+                //    List<CellModel> ascendingoptionscellvalues4 = hierarchy.Where(x => x.amountofoptions == 4).ToList();
+                //    for (int x = 0; x < ascendingoptionscellvalues4.Count; x++)
+                //    {
+                //        SolveCellLogical(ascendingoptionscellvalues4[x], model);
+                //    }
+                //    continue;
+                //}
+                //if (hierarchy.Where(x => x.amountofoptions == 5).ToList().Any())
+                //{
+                //    List<CellModel> ascendingoptionscellvalues5 = hierarchy.Where(x => x.amountofoptions == 5).ToList();
+                //    for (int x = 0; x < ascendingoptionscellvalues5.Count; x++)
+                //    {
+                //        SolveCellLogical(ascendingoptionscellvalues5[x], model);
+                //    }
+                //    continue;
+                //}
+                //if (hierarchy.Where(x => x.amountofoptions == 6).ToList().Any())
+                //{
+                //    List<CellModel> ascendingoptionscellvalues6 = hierarchy.Where(x => x.amountofoptions == 6).ToList();
+                //    for (int x = 0; x < ascendingoptionscellvalues6.Count; x++)
+                //    {
+                //        SolveCellLogical(ascendingoptionscellvalues6[x], model);
+                //    }
+                //    continue;
+                //}
+                //if (hierarchy.Where(x => x.amountofoptions == 7).ToList().Any())
+                //{
+                //    List<CellModel> ascendingoptionscellvalues7 = hierarchy.Where(x => x.amountofoptions == 7).ToList();
+                //    for (int x = 0; x < ascendingoptionscellvalues7.Count; x++)
+                //    {
+                //        SolveCellLogical(ascendingoptionscellvalues7[x], model);
+                //    }
+                //    continue;
+                //}
+                //if (hierarchy.Where(x => x.amountofoptions == 8).ToList().Any())
+                //{
+                //    List<CellModel> ascendingoptionscellvalues8 = hierarchy.Where(x => x.amountofoptions == 8).ToList();
+                //    for (int x = 0; x < ascendingoptionscellvalues8.Count; x++)
+                //    {
+                //        SolveCellLogical(ascendingoptionscellvalues8[x], model);
+                //    }
+                //    continue;
+                //}
+                //if (hierarchy.Where(x => x.amountofoptions == 9).ToList().Any())
+                //{
+                //    List<CellModel> ascendingoptionscellvalues9 = hierarchy.Where(x => x.amountofoptions == 9).ToList();
+                //    for (int x = 0; x < ascendingoptionscellvalues9.Count; x++)
+                //    {
+                //        SolveCellLogical(ascendingoptionscellvalues9[x], model);
+                //    }
+                //    continue;
+                //}
+                else
+                {
+                    break;
+                }
+            }
+            
             return model;
         }
 
@@ -338,7 +512,7 @@ namespace SudokuSolverAlgorithm
                 } }
 
             };
-            SolveSudokuLogical2(SudokuBoard);
+            SolveSudokuLogical3(SudokuBoard);
             var solvedboard = SudokuBoard;
 
             string firstrow = "";
