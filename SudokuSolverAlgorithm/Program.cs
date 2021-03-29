@@ -6,6 +6,8 @@ namespace SudokuSolverAlgorithm
 {
     public class Program
     {
+
+
         //layer 2
         private static bool SolveSudokuLogical2(SudokuModel model)
         {
@@ -57,7 +59,7 @@ namespace SudokuSolverAlgorithm
                             }
                             while (CheckConstraints(model, i, j, randomnumber) == false);
                             for (int c = 1; c <= 9; c++)
-                            {
+                             {
                                 if (CheckConstraints(model, i, j, c))
                                 {
                                     model.Sudoku[i][j].value = c;
@@ -87,6 +89,81 @@ namespace SudokuSolverAlgorithm
                                     return true;
                                 else
 
+                                    model.Sudoku[i][j].value = 0;
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static bool SolveSudokuGuessing2(SudokuModel model)
+        {
+            List<CellModel> PreviousChosenRandomNumbers = new List<CellModel>();
+
+            goto GuessNumber;
+
+            GuessNumber:
+
+            Random rnd = new Random();
+            CalculateListOfOptions(model);
+            for (int i = 0; i < model.Sudoku.Count; i++)
+            {
+                for (int j = 0; j < model.Sudoku[0].Count; j++)
+                {
+                    if (model.Sudoku[i][j].value == 0)
+                    {
+                        if (model.Sudoku[i][j].amountofoptions == 1)
+                        {
+                            var randomnumber = rnd.Next(1, 10);
+                            do
+                            {
+                                if (CheckConstraints(model, i, j, randomnumber))
+                                {
+                                    if (!PreviousChosenRandomNumbers.Contains(model.Sudoku[i][j]))
+                                    {
+
+                                        model.Sudoku[i][j].value = randomnumber;
+                                        PreviousChosenRandomNumbers.Add(model.Sudoku[i][j]);
+                                        goto SolveSudoku;
+                                    }
+                                }
+                            }
+                            while (CheckConstraints(model, i, j, randomnumber) == false);
+                            for (int c = 1; c <= 9; c++)
+                            {
+                                if (CheckConstraints(model, i, j, c))
+                                {
+                                    model.Sudoku[i][j].value = c;
+                                    goto SolveSudoku;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            SolveSudoku:
+
+
+            for (int i = 0; i < model.Sudoku.Count; i++)
+            {
+                for (int j = 0; j < model.Sudoku[0].Count; j++)
+                {
+                    if (model.Sudoku[i][j].value == 0)
+                    {
+                        for (int c = 1; c <= 9; c++)
+                        {
+                            if (CheckConstraints(model, i, j, c))
+                            {
+
+                                model.Sudoku[i][j].value = c;
+
+                                if (SolveSudokuGuessing2(model))
+                                    return true;
+                                else
                                     model.Sudoku[i][j].value = 0;
                             }
                         }
@@ -577,7 +654,7 @@ namespace SudokuSolverAlgorithm
                 } }
 
             };
-            SolveSudokuGuessing(SudokuBoard);
+            SolveSudokuGuessing2(SudokuBoard);
             var solvedboard = SudokuBoard;
 
             string firstrow = "";
