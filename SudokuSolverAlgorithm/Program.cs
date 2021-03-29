@@ -6,7 +6,10 @@ namespace SudokuSolverAlgorithm
 {
     public class Program
     {
-
+        //private static bool SolveSudokuLogical4(SudokuModel model)
+        //{ 
+        
+        //}
 
         //layer 2
         private static bool SolveSudokuLogical2(SudokuModel model)
@@ -224,7 +227,7 @@ namespace SudokuSolverAlgorithm
             }
             return true;
         }
-        private static bool CalculateListOfOptions(SudokuModel model)
+        public static bool CalculateListOfOptions(SudokuModel model)
         {
             List<CellModel> listofoptions = new List<CellModel>();
             for (int i = 0; i < model.Sudoku.Count; i++)
@@ -237,11 +240,169 @@ namespace SudokuSolverAlgorithm
                         {
                             model.Sudoku[i][j].amountofoptions = CheckOptions(model,i,j,c);                               
                         }
-                        return false;
+                        //return false;
                     }
                 }
             }
             return true;
+        }
+        public static bool FillInSudoku(SudokuModel model)
+        {
+            List<CellModel> listofoptions = new List<CellModel>();
+            for (int i = 0; i < model.Sudoku.Count; i++)
+            {
+                for (int j = 0; j < model.Sudoku[0].Count; j++)
+                {
+                    if (model.Sudoku[i][j].value == 0)
+                    {
+                        for (int c = 1; c <= 9; c++)
+                        {
+                            model.Sudoku[i][j].amountofoptions = CheckOptions(model, i, j, c);
+                        }
+                        //return false;
+                    }
+                }
+            }
+            return true;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        //checkpoint
+        public static SudokuModel SolveCalculatelistOfOptions(SudokuModel model)
+        {
+            List<CellModel> allitemsCheck = new List<CellModel>();
+
+            foreach (var item in model.Sudoku)
+            {
+                allitemsCheck.AddRange(item);
+            }
+
+            //while (allitemsCheck.Where(a => a.value == 0).Any())
+            List<CellModel> PreviouslyCalculatedCells = new List<CellModel>();
+
+            for (int i = 0; i < 99; i++)
+            {
+                AssignCountingOptionsToAllCells(model);
+                List<CellModel> allitems = new List<CellModel>();
+
+                foreach (var item in model.Sudoku)
+                {
+                    allitems.AddRange(item);
+                }
+
+
+                List<CellModel> opencells = allitems.Where(a => a.value == 0).OrderBy(a => a.amountofoptions).ToList();
+                    CellModel chosencell = opencells.FirstOrDefault();
+               
+                    assignvaluecell2(model, chosencell.row, chosencell.column);
+                PreviouslyCalculatedCells.Add(model.Sudoku[chosencell.row][chosencell.column]);
+            }
+            return model;
+        }
+
+        public static void AssignCountingOptionsToAllCells(SudokuModel model)
+        {
+            List<CellModel> allitems = new List<CellModel>();
+
+            foreach (var item in model.Sudoku)
+            {
+                allitems.AddRange(item);
+            }
+            List<CellModel> opencells = allitems.Where(a => a.value == 0).ToList();
+            foreach (var item in opencells)
+            {
+                CountOptions2(model, item.row, item.column);
+            }
+
+        }
+
+        public static void CountOptions2(SudokuModel model, int row, int column)
+        {
+            List<CellModel> Row = new List<CellModel>();
+            List<CellModel> Column = new List<CellModel>();
+            for (int i = 0; i < 9; i++)
+            {
+                Row.Add(model.Sudoku[row][i]);
+                Column.Add(model.Sudoku[i][column]);
+            }
+            int amountofoptions = 0;
+            for (int c = 1; c <= 9; c++)
+            {
+                if (Row.Where(a => a.value == c).Any())
+                {
+                    continue;
+                }
+                if (Column.Where(a => a.value == c).Any())
+                {
+                    continue;
+                }
+                else
+                {
+                    amountofoptions++;
+                }
+            }
+            model.Sudoku[row][column].amountofoptions = amountofoptions;
+        }
+
+        public static void assignvaluecell2(SudokuModel model, int row, int column)
+        {
+            List<CellModel> Row = new List<CellModel>();
+            List<CellModel> Column = new List<CellModel>();
+            for (int i = 0; i < 9; i++)
+            {
+                Row.Add(model.Sudoku[row][i]);
+                Column.Add(model.Sudoku[i][column]);
+            }
+            for (int c = 1; c <= 9; c++)
+            {
+                if (Row.Where(a => a.value == c).Any())
+                {
+                    continue;
+                }
+                if (Column.Where(a => a.value == c).Any())
+                {
+                    continue;
+                }
+                else
+                {
+                    model.Sudoku[row][column].value = c;
+                    break;
+                }
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="row"></param>
+        /// <param name="col"></param>
+        /// <param name="c"></param>
+        private static void CheckConstraints2(SudokuModel model, int row, int col, int c)
+        {
+            int x = 0;
+            for (int i = 0; i < 9; i++)
+            {
+                if (model.Sudoku[i][col].value != 0 && model.Sudoku[i][col].value == c)
+                {
+                    continue;
+                }
+                if (model.Sudoku[row][i].value != 0 && model.Sudoku[row][i].value == c)
+                {
+                    continue;
+                }
+                if (model.Sudoku[3 * (row / 3) + i / 3][3 * (col / 3) + i % 3].value != 0 && model.Sudoku[3 * (row / 3) + i / 3][3 * (col / 3) + i % 3].value == c)
+                {
+                    continue;
+                }
+                else 
+                {
+                    x = i + 1;
+                }
+            }
+            model.Sudoku[row][col].value = x;
         }
 
         private static int CheckOptions(SudokuModel model, int row, int col, int c)
@@ -654,8 +815,9 @@ namespace SudokuSolverAlgorithm
                 } }
 
             };
-            SolveSudokuGuessing2(SudokuBoard);
-            var solvedboard = SudokuBoard;
+            //SolveCalculatelistOfOptions(SudokuBoard);
+            var solvedboard = SolveCalculatelistOfOptions(SudokuBoard);
+            ;
 
             string firstrow = "";
             for (int i = 0; i < 9; i++)
