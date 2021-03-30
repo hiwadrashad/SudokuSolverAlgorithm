@@ -708,8 +708,7 @@ namespace SudokuSolverAlgorithm
         public static SudokuModel SolveGuessingEmpty(SudokuModel model)
         {
 
-            Random rnd = new Random();
-            int randomnumber;
+            int randomnumber = 0;
             Dictionary<int, CellModel> previouscell = new Dictionary<int, CellModel>();
             List<int> PreviousChosenNumbers = new List<int>();
             SolveLogical4(model);
@@ -717,21 +716,10 @@ namespace SudokuSolverAlgorithm
             GuessNumber:
             if (previouscell.Count > 0)
             {
-                var numberlist = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-                numberlist = numberchecker4(model, previouscell[0].row, previouscell[0].column, numberlist);
-                do
-                {
-                    randomnumber = rnd.Next(previouscell.Count);
-                }
-                while (PreviousChosenNumbers.Contains(numberlist[randomnumber]));
-
-                model.Sudoku[previouscell[0].row][previouscell[0].column].value = numberlist[randomnumber];
-                PreviousChosenNumbers.Add(numberlist[randomnumber]);
-                if (PreviousChosenNumbers.Count == numberlist.Count)
-                {
-                    previouscell.Clear();
-                    PreviousChosenNumbers.Clear();
-                }
+                var transferobject = IterateChosenCellEmpty(model, randomnumber, previouscell, PreviousChosenNumbers);
+                randomnumber = transferobject.RandomNumber;
+                previouscell = transferobject.PreviousCell;
+                PreviousChosenNumbers = transferobject.PreviousChosenNumbers;
                 SolveLogical4(model);
                 if (SudokuSolver4(model))
                 {
@@ -757,11 +745,10 @@ namespace SudokuSolverAlgorithm
 
                             if (numberlist.Count > 1)
                             {
-                                randomnumber = rnd.Next(numberlist.Count);
-
-                                model.Sudoku[a][b].value = numberlist[randomnumber];
-                                previouscell.Add(0, model.Sudoku[a][b]);
-                                PreviousChosenNumbers.Add(numberlist[randomnumber]);
+                                var transfermodel = ChooseCellToiterateEmpty(model, randomnumber, previouscell, PreviousChosenNumbers, numberlist, a, b);
+                                randomnumber = transfermodel.RandomNumber;
+                                previouscell = transfermodel.PreviousCell;
+                                PreviousChosenNumbers = transfermodel.PreviousChosenNumbers;
                                 SolveLogical4(model);
                                 if (SudokuSolver4(model))
                                 {
@@ -782,10 +769,65 @@ namespace SudokuSolverAlgorithm
             return model;
         }
 
+        public static DTOModel ChooseCellToiterateEmpty(SudokuModel model, int RandomNumber, Dictionary<int, CellModel> PreviousCell, List<int> PreviousChosenNumber,List<int> numberlist, int a , int b)
+        {
+            Random rnd = new Random();
+            int randomnumber = RandomNumber;
+            Dictionary<int, CellModel> previouscell = PreviousCell;
+            List<int> previouschosennumbers = PreviousChosenNumber;
+
+            randomnumber = rnd.Next(numberlist.Count);
+
+            model.Sudoku[a][b].value = numberlist[randomnumber];
+            previouscell.Add(0, model.Sudoku[a][b]);
+            previouschosennumbers.Add(numberlist[randomnumber]);
+            SolveLogical4(model);
+            DTOModel transfermodel = new DTOModel();
+            transfermodel.PreviousCell = previouscell;
+            transfermodel.PreviousChosenNumbers = previouschosennumbers;
+            transfermodel.RandomNumber = randomnumber;
+            return transfermodel;
+        }
+
+        public static DTOModel IterateChosenCellEmpty(SudokuModel model, int RandomNumber, Dictionary<int, CellModel> PreviousCell, List<int> PreviousChosenNumber)
+        {
+            Random rnd = new Random();
+            int randomnumber = RandomNumber;
+            Dictionary<int, CellModel> previouscell = PreviousCell;
+            List<int> previouschosennumbers = PreviousChosenNumber;
+
+            var numberlist = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            numberlist = numberchecker4(model, previouscell[0].row, previouscell[0].column, numberlist);
+            do
+            {
+                randomnumber = rnd.Next(previouscell.Count);
+            }
+            while (previouschosennumbers.Contains(numberlist[randomnumber]));
+
+            model.Sudoku[previouscell[0].row][previouscell[0].column].value = numberlist[randomnumber];
+            previouschosennumbers.Add(numberlist[randomnumber]);
+            if (previouschosennumbers.Count == numberlist.Count)
+            {
+                previouscell.Clear();
+                previouschosennumbers.Clear();
+            }
+
+            DTOModel transfermodel = new DTOModel();
+            transfermodel.RandomNumber = randomnumber;
+            transfermodel.PreviousChosenNumbers = previouschosennumbers;
+            transfermodel.PreviousCell = previouscell;
+            return transfermodel;
+
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         public static SudokuModel SolveGuessing4(SudokuModel model)
         {
             Random rnd = new Random();
-            int randomnumber;
+            int randomnumber = 0;
             Dictionary<int, CellModel> previouscell = new Dictionary<int, CellModel>();
             SolveLogical4(model);
             bool placed = false;
@@ -799,8 +841,9 @@ namespace SudokuSolverAlgorithm
                     randomnumber = rnd.Next(2);
                 }
                 while (model.Sudoku[previouscell[0].row][previouscell[0].column].value == numberlist[randomnumber]);
-                model.Sudoku[previouscell[0].row][previouscell[0].column].value = numberlist[randomnumber];
-                previouscell.Clear();
+                var transferobject = IterateChosenCellGuessing(model, randomnumber, previouscell);
+                randomnumber = transferobject.RandomNumber;
+                previouscell = transferobject.PreviousCell;
                 SolveLogical4(model);
                 if (SudokuSolver4(model))
                 {
@@ -826,10 +869,10 @@ namespace SudokuSolverAlgorithm
 
                             if (numberlist.Count == 2)
                             {
-                                    randomnumber = rnd.Next(2);
-
-                                model.Sudoku[a][b].value = numberlist[randomnumber];
-                                previouscell.Add(0, model.Sudoku[a][b]);
+                                var transferobject = ChooseCellToiterateGuessing(model, randomnumber, previouscell, numberlist, a, b);
+                                randomnumber = transferobject.RandomNumber;
+                                previouscell = transferobject.PreviousCell;
+                                 
                                 SolveLogical4(model);
                                 if (SudokuSolver4(model))
                                 {
@@ -848,6 +891,48 @@ namespace SudokuSolverAlgorithm
             
             return model;
         }
+        public static DTOModel IterateChosenCellGuessing(SudokuModel model,int RandomNumber, Dictionary<int, CellModel> PreviousCell)
+        {
+            Random rnd = new Random();
+            int randomnumber = RandomNumber;
+            Dictionary<int, CellModel> previouscell = PreviousCell;
+
+            var numberlist = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            numberlist = numberchecker4(model, previouscell[0].row, previouscell[0].column, numberlist);
+            do
+            {
+                randomnumber = rnd.Next(2);
+            }
+            while (model.Sudoku[previouscell[0].row][previouscell[0].column].value == numberlist[randomnumber]);
+            model.Sudoku[previouscell[0].row][previouscell[0].column].value = numberlist[randomnumber];
+            previouscell.Clear();
+            DTOModel transferobject = new DTOModel();
+            transferobject.PreviousCell = previouscell;
+            transferobject.RandomNumber = randomnumber;
+            return transferobject;
+
+        }
+
+        public static DTOModel ChooseCellToiterateGuessing(SudokuModel model, int RandomNumber, Dictionary<int, CellModel> PreviousCell, List<int> numberlist, int a, int b)
+        {
+            Random rnd = new Random();
+            int randomnumber = RandomNumber;
+            Dictionary<int, CellModel> previouscell = PreviousCell;
+            randomnumber = rnd.Next(2);
+
+            model.Sudoku[a][b].value = numberlist[randomnumber];
+            previouscell.Add(0, model.Sudoku[a][b]);
+            DTOModel transfermodel = new DTOModel();
+            transfermodel.PreviousCell = previouscell;
+            transfermodel.RandomNumber = randomnumber;
+            return transfermodel;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         public static SudokuModel SolveLogical4(SudokuModel model)
         {
             bool placed = false;
@@ -1161,7 +1246,7 @@ namespace SudokuSolverAlgorithm
                 } }
 
             };
-            var SudokuBoard = new SudokuModel()
+            var SudokuLogicalBoard = new SudokuModel()
             {
                 Sudoku = new System.Collections.Generic.List<System.Collections.Generic.List<CellModel>>()
             {
@@ -1276,7 +1361,7 @@ namespace SudokuSolverAlgorithm
 
             };
             //SolveCalculatelistOfOptions(SudokuBoard);
-            var solvedboard = SolveGuessing4(GuessingSudoku);
+            var solvedboard = SolveGuessing4(SudokuLogicalBoard);
             ;
 
             string firstrow = "";
