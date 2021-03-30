@@ -699,8 +699,468 @@ namespace SudokuSolverAlgorithm
             return sudokumodel;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        /// 
+        public static SudokuModel SolveGuessingEmpty(SudokuModel model)
+        {
+
+            Random rnd = new Random();
+            int randomnumber;
+            Dictionary<int, CellModel> previouscell = new Dictionary<int, CellModel>();
+            List<int> PreviousChosenNumbers = new List<int>();
+            SolveLogical4(model);
+            bool placed = false;
+            GuessNumber:
+            if (previouscell.Count > 0)
+            {
+                var numberlist = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+                numberlist = numberchecker4(model, previouscell[0].row, previouscell[0].column, numberlist);
+                do
+                {
+                    randomnumber = rnd.Next(previouscell.Count);
+                }
+                while (PreviousChosenNumbers.Contains(numberlist[randomnumber]));
+
+                model.Sudoku[previouscell[0].row][previouscell[0].column].value = numberlist[randomnumber];
+                PreviousChosenNumbers.Add(numberlist[randomnumber]);
+                if (PreviousChosenNumbers.Count == numberlist.Count)
+                {
+                    previouscell.Clear();
+                    PreviousChosenNumbers.Clear();
+                }
+                SolveLogical4(model);
+                if (SudokuSolver4(model))
+                {
+                    return model;
+                }
+                else
+                {
+                    goto GuessNumber;
+                }
+            }
+            do
+            {
+                placed = false;
+                for (int a = 0; a < 9; a++)
+                {
+                    for (int b = 0; b < 9; b++)
+                    {
+                        if (model.Sudoku[a][b].value == 0)
+                        {
+                            //var numberlist = Enumerable.Range(1, 9).ToList();
+                            var numberlist = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+                            numberlist = numberchecker4(model, a, b, numberlist);
+
+                            if (numberlist.Count > 1)
+                            {
+                                randomnumber = rnd.Next(numberlist.Count);
+
+                                model.Sudoku[a][b].value = numberlist[randomnumber];
+                                previouscell.Add(0, model.Sudoku[a][b]);
+                                PreviousChosenNumbers.Add(numberlist[randomnumber]);
+                                SolveLogical4(model);
+                                if (SudokuSolver4(model))
+                                {
+                                    return model;
+                                }
+
+                                goto GuessNumber;
+                            }
+                        }
+                    }
+                }
+                if (SudokuSolver4(model))
+                {
+                    break;
+                }
+            } while (placed);
+
+            return model;
+        }
+
+        public static SudokuModel SolveGuessing4(SudokuModel model)
+        {
+            Random rnd = new Random();
+            int randomnumber;
+            Dictionary<int, CellModel> previouscell = new Dictionary<int, CellModel>();
+            SolveLogical4(model);
+            bool placed = false;
+            GuessNumber:
+            if (previouscell.Count == 1)
+            {
+                var numberlist = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+                numberlist = numberchecker4(model, previouscell[0].row, previouscell[0].column, numberlist);
+                do
+                {
+                    randomnumber = rnd.Next(2);
+                }
+                while (model.Sudoku[previouscell[0].row][previouscell[0].column].value == numberlist[randomnumber]);
+                model.Sudoku[previouscell[0].row][previouscell[0].column].value = numberlist[randomnumber];
+                previouscell.Clear();
+                SolveLogical4(model);
+                if (SudokuSolver4(model))
+                {
+                    return model;
+                }
+                else
+                {
+                    goto GuessNumber;
+                }
+            }
+            do
+            {
+                placed = false;
+                for (int a = 0; a < 9; a++)
+                {
+                    for (int b = 0; b < 9; b++)
+                    {
+                        if (model.Sudoku[a][b].value == 0)
+                        {
+                            //var numberlist = Enumerable.Range(1, 9).ToList();
+                            var numberlist = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+                            numberlist = numberchecker4(model, a, b, numberlist);
+
+                            if (numberlist.Count == 2)
+                            {
+                                    randomnumber = rnd.Next(2);
+
+                                model.Sudoku[a][b].value = numberlist[randomnumber];
+                                previouscell.Add(0, model.Sudoku[a][b]);
+                                SolveLogical4(model);
+                                if (SudokuSolver4(model))
+                                {
+                                    return model;
+                                }
+                                goto GuessNumber;
+                            }
+                        }
+                    }
+                }
+                if (SudokuSolver4(model))
+                {
+                    break;
+                }
+            } while (placed);
+            
+            return model;
+        }
+        public static SudokuModel SolveLogical4(SudokuModel model)
+        {
+            bool placed = false;
+            do
+            {
+                placed = false;
+                for (int a = 0; a < 9; a++)
+                {
+                    for (int b = 0; b < 9; b++)
+                    {
+                        if (model.Sudoku[a][b].value == 0)
+                        {
+                            //var numberlist = Enumerable.Range(1, 9).ToList();
+                            var numberlist = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+                            numberlist = numberchecker4(model, a, b, numberlist);
+
+                            if (numberlist.Count == 1)
+                            {
+                                model.Sudoku[a][b].value = numberlist[0];
+                                a = -1;
+                                placed = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (SudokuSolver4(model))
+                {
+                    break;
+                }
+            } while (placed);
+            return model;
+        }
+
+        public static List<int> numberchecker4(SudokuModel model, int a, int b, List<int> numberlist)
+        {
+            int corda = a - a % 3;
+            int cordb = b - b % 3;
+            for (int c = 0; c < 9; c++)
+            {
+                if (numberlist.Contains(model.Sudoku[a][c].value))
+                {
+                    numberlist.Remove(model.Sudoku[a][c].value);
+                }
+            }
+            for (int d = 0; d < 9; d++)
+            {
+                if (numberlist.Contains(model.Sudoku[d][b].value))
+                {
+                    numberlist.Remove(model.Sudoku[d][b].value);
+                }
+            }
+            for (int i = corda; i < corda + 3; i++)
+            {
+                for (int j = cordb; j < cordb + 3; j++)
+                {
+                    if (numberlist.Contains(model.Sudoku[i][j].value))
+                    {
+                        numberlist.Remove(model.Sudoku[i][j].value);
+                    }
+                }
+            }
+            return numberlist;
+        }
+
+        public static bool SudokuSolver4(SudokuModel model)
+        {
+            for (int a = 0; a < 9; a++)
+            {
+                for (int b = 0; b < 9; b++)
+                {
+                    if (model.Sudoku[a][b].value == 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
+            var GuessingSudoku = new SudokuModel()
+            {
+                Sudoku = new List<List<CellModel>>()
+            {
+                new List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 0, square = 0  } ,
+                    new CellModel { value = 0, column = 1, row = 0, square = 0  },
+                    new CellModel { value = 0, column = 2, row = 0, square = 0  },
+                    new CellModel { value = 0, column = 3, row = 0, square = 1  },
+                    new CellModel { value = 0, column = 4, row = 0, square = 1  },
+                    new CellModel { value = 0, column = 5, row = 0, square = 1  },
+                    new CellModel { value = 0, column = 6, row = 0, square = 2  },
+                    new CellModel { value = 0, column = 7, row = 0, square = 2  },
+                    new CellModel { value = 0, column = 8, row = 0, square = 2  },
+                },
+                new List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 1, square = 0  } ,
+                    new CellModel { value = 0, column = 1, row = 1, square = 0  },
+                    new CellModel { value = 0, column = 2, row = 1, square = 0  },
+                    new CellModel { value = 0, column = 3, row = 1, square = 1  },
+                    new CellModel { value = 0, column = 4, row = 1, square = 1  },
+                    new CellModel { value = 0, column = 5, row = 1, square = 1  },
+                    new CellModel { value = 0, column = 6, row = 1, square = 2  },
+                    new CellModel { value = 0, column = 7, row = 1, square = 2  },
+                    new CellModel { value = 0, column = 8, row = 1, square = 2  },
+                },
+                new List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 2, square = 0  } ,
+                    new CellModel { value = 9, column = 1, row = 2, square = 0  },
+                    new CellModel { value = 8, column = 2, row = 2, square = 0  },
+                    new CellModel { value = 0, column = 3, row = 2, square = 1  },
+                    new CellModel { value = 0, column = 4, row = 2, square = 1  },
+                    new CellModel { value = 0, column = 5, row = 2, square = 1  },
+                    new CellModel { value = 0, column = 6, row = 2, square = 2  },
+                    new CellModel { value = 6, column = 7, row = 2, square = 2  },
+                    new CellModel { value = 0, column = 8, row = 2, square = 2  },
+                },
+                new List<CellModel>
+                {
+                    new CellModel { value = 8, column = 0, row = 3, square = 3  } ,
+                    new CellModel { value = 0, column = 1, row = 3, square = 3  },
+                    new CellModel { value = 0, column = 2, row = 3, square = 3  },
+                    new CellModel { value = 0, column = 3, row = 3, square = 4  },
+                    new CellModel { value = 6, column = 4, row = 3, square = 4 },
+                    new CellModel { value = 0, column = 5, row = 3, square = 4  },
+                    new CellModel { value = 0, column = 6, row = 3, square = 5  },
+                    new CellModel { value = 0, column = 7, row = 3, square = 5  },
+                    new CellModel { value = 0, column = 8, row = 3, square = 5  },
+                },
+                new List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 4, square = 3  } ,
+                    new CellModel { value = 0, column = 1, row = 4, square = 3  },
+                    new CellModel { value = 0, column = 2, row = 4, square = 3  },
+                    new CellModel { value = 8, column = 3, row = 4, square = 4  },
+                    new CellModel { value = 0, column = 4, row = 4, square = 4  },
+                    new CellModel { value = 0, column = 5, row = 4, square = 4  },
+                    new CellModel { value = 0, column = 6, row = 4, square = 5  },
+                    new CellModel { value = 0, column = 7, row = 4, square = 5  },
+                    new CellModel { value = 0, column = 8, row = 4, square = 5  },
+                },
+                new List<CellModel>
+                {
+                    new CellModel { value = 7, column = 0, row = 5, square = 3  } ,
+                    new CellModel { value = 0, column = 1, row = 5, square = 3  },
+                    new CellModel { value = 0, column = 2, row = 5, square = 3  },
+                    new CellModel { value = 0, column = 3, row = 5, square = 4  },
+                    new CellModel { value = 2, column = 4, row = 5, square = 4  },
+                    new CellModel { value = 0, column = 5, row = 5, square = 4  },
+                    new CellModel { value = 0, column = 6, row = 5, square = 5  },
+                    new CellModel { value = 0, column = 7, row = 5, square = 5  },
+                    new CellModel { value = 0, column = 8, row = 5, square = 5  },
+                },
+                new List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 6, square = 6  } ,
+                    new CellModel { value = 6, column = 1, row = 6, square = 6  },
+                    new CellModel { value = 0, column = 2, row = 6, square = 6  },
+                    new CellModel { value = 0, column = 3, row = 6, square = 7  },
+                    new CellModel { value = 0, column = 4, row = 6, square = 7  },
+                    new CellModel { value = 0, column = 5, row = 6, square = 7  },
+                    new CellModel { value = 0, column = 6, row = 6, square = 8  },
+                    new CellModel { value = 0, column = 7, row = 6, square = 8  },
+                    new CellModel { value = 0, column = 8, row = 6, square = 8  },
+                },
+                new List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 7, square = 6  } ,
+                    new CellModel { value = 0, column = 1, row = 7, square = 6  },
+                    new CellModel { value = 0, column = 2, row = 7, square = 6  },
+                    new CellModel { value = 4, column = 3, row = 7, square = 7  },
+                    new CellModel { value = 1, column = 4, row = 7, square = 7  },
+                    new CellModel { value = 9, column = 5, row = 7, square = 7  },
+                    new CellModel { value = 0, column = 6, row = 7, square = 8  },
+                    new CellModel { value = 0, column = 7, row = 7, square = 8  },
+                    new CellModel { value = 0, column = 8, row = 7, square = 8  },
+                },
+                new List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 8, square = 6  } ,
+                    new CellModel { value = 0, column = 1, row = 8, square = 6  },
+                    new CellModel { value = 0, column = 2, row = 8, square = 6  },
+                    new CellModel { value = 0, column = 3, row = 8, square = 7  },
+                    new CellModel { value = 8, column = 4, row = 8, square = 7  },
+                    new CellModel { value = 0, column = 5, row = 8, square = 7  },
+                    new CellModel { value = 0, column = 6, row = 8, square = 8  },
+                    new CellModel { value = 0, column = 7, row = 8, square = 8  },
+                    new CellModel { value = 0, column = 8, row = 8, square = 8  },
+                } }
+
+            };
+            var EmptySudokuBoard = new SudokuModel()
+            {
+                Sudoku = new System.Collections.Generic.List<System.Collections.Generic.List<CellModel>>()
+            {
+                new System.Collections.Generic.List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 0, square = 0  } ,
+                    new CellModel { value = 0, column = 1, row = 0, square = 0  },
+                    new CellModel { value = 0, column = 2, row = 0, square = 0  },
+                    new CellModel { value = 0, column = 3, row = 0, square = 1  },
+                    new CellModel { value = 0, column = 4, row = 0, square = 1  },
+                    new CellModel { value = 0, column = 5, row = 0, square = 1  },
+                    new CellModel { value = 0, column = 6, row = 0, square = 2  },
+                    new CellModel { value = 0, column = 7, row = 0, square = 2  },
+                    new CellModel { value = 0, column = 8, row = 0, square = 2  },
+                },
+                        new System.Collections.Generic.List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 1, square = 0  } ,
+                    new CellModel { value = 0, column = 1, row = 1, square = 0  },
+                    new CellModel { value = 0, column = 2, row = 1, square = 0  },
+                    new CellModel { value = 0, column = 3, row = 1, square = 1  },
+                    new CellModel { value = 0, column = 4, row = 1, square = 1  },
+                    new CellModel { value = 0, column = 5, row = 1, square = 1  },
+                    new CellModel { value = 0, column = 6, row = 1, square = 2  },
+                    new CellModel { value = 0, column = 7, row = 1, square = 2  },
+                    new CellModel { value = 0, column = 8, row = 1, square = 2  },
+                },
+                                     new System.Collections.Generic.List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 2, square = 0  } ,
+                    new CellModel { value = 0, column = 1, row = 2, square = 0  },
+                    new CellModel { value = 0, column = 2, row = 2, square = 0  },
+                    new CellModel { value = 0, column = 3, row = 2, square = 1  },
+                    new CellModel { value = 0, column = 4, row = 2, square = 1  },
+                    new CellModel { value = 0, column = 5, row = 2, square = 1  },
+                    new CellModel { value = 0, column = 6, row = 2, square = 2  },
+                    new CellModel { value = 0, column = 7, row = 2, square = 2  },
+                    new CellModel { value = 0, column = 8, row = 2, square = 2  },
+                },
+                                                  new System.Collections.Generic.List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 3, square = 3  } ,
+                    new CellModel { value = 0, column = 1, row = 3, square = 3  },
+                    new CellModel { value = 0, column = 2, row = 3, square = 3  },
+                    new CellModel { value = 0, column = 3, row = 3, square = 4  },
+                    new CellModel { value = 0, column = 4, row = 3, square = 4 },
+                    new CellModel { value = 0, column = 5, row = 3, square = 4  },
+                    new CellModel { value = 0, column = 6, row = 3, square = 5  },
+                    new CellModel { value = 0, column = 7, row = 3, square = 5  },
+                    new CellModel { value = 0, column = 8, row = 3, square = 5  },
+                },
+                                                               new System.Collections.Generic.List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 4, square = 3  } ,
+                    new CellModel { value = 0, column = 1, row = 4, square = 3  },
+                    new CellModel { value = 0, column = 2, row = 4, square = 3  },
+                    new CellModel { value = 0, column = 3, row = 4, square = 4  },
+                    new CellModel { value = 0, column = 4, row = 4, square = 4  },
+                    new CellModel { value = 0, column = 5, row = 4, square = 4  },
+                    new CellModel { value = 0, column = 6, row = 4, square = 5  },
+                    new CellModel { value = 0, column = 7, row = 4, square = 5  },
+                    new CellModel { value = 0, column = 8, row = 4, square = 5  },
+                },
+                                                                            new System.Collections.Generic.List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 5, square = 3  } ,
+                    new CellModel { value = 0, column = 1, row = 5, square = 3  },
+                    new CellModel { value = 0, column = 2, row = 5, square = 3  },
+                    new CellModel { value = 0, column = 3, row = 5, square = 4  },
+                    new CellModel { value = 0, column = 4, row = 5, square = 4  },
+                    new CellModel { value = 0, column = 5, row = 5, square = 4  },
+                    new CellModel { value = 0, column = 6, row = 5, square = 5  },
+                    new CellModel { value = 0, column = 7, row = 5, square = 5  },
+                    new CellModel { value = 0, column = 8, row = 5, square = 5  },
+                },
+                                                                                         new System.Collections.Generic.List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 6, square = 6  } ,
+                    new CellModel { value = 0, column = 1, row = 6, square = 6  },
+                    new CellModel { value = 0, column = 2, row = 6, square = 6  },
+                    new CellModel { value = 0, column = 3, row = 6, square = 7  },
+                    new CellModel { value = 0, column = 4, row = 6, square = 7  },
+                    new CellModel { value = 0, column = 5, row = 6, square = 7  },
+                    new CellModel { value = 0, column = 6, row = 6, square = 8  },
+                    new CellModel { value = 0, column = 7, row = 6, square = 8  },
+                    new CellModel { value = 0, column = 8, row = 6, square = 8  },
+                },
+                                                                                                      new System.Collections.Generic.List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 7, square = 6  } ,
+                    new CellModel { value = 0, column = 1, row = 7, square = 6  },
+                    new CellModel { value = 0, column = 2, row = 7, square = 6  },
+                    new CellModel { value = 0, column = 3, row = 7, square = 7  },
+                    new CellModel { value = 0, column = 4, row = 7, square = 7  },
+                    new CellModel { value = 0, column = 5, row = 7, square = 7  },
+                    new CellModel { value = 0, column = 6, row = 7, square = 8  },
+                    new CellModel { value = 0, column = 7, row = 7, square = 8  },
+                    new CellModel { value = 0, column = 8, row = 7, square = 8  },
+                },
+                                                                                                                   new System.Collections.Generic.List<CellModel>
+                {
+                    new CellModel { value = 0, column = 0, row = 8, square = 6  } ,
+                    new CellModel { value = 0, column = 1, row = 8, square = 6  },
+                    new CellModel { value = 0, column = 2, row = 8, square = 6  },
+                    new CellModel { value = 0, column = 3, row = 8, square = 7  },
+                    new CellModel { value = 0, column = 4, row = 8, square = 7  },
+                    new CellModel { value = 0, column = 5, row = 8, square = 7  },
+                    new CellModel { value = 0, column = 6, row = 8, square = 8  },
+                    new CellModel { value = 0, column = 7, row = 8, square = 8  },
+                    new CellModel { value = 0, column = 8, row = 8, square = 8  },
+                } }
+
+            };
             var SudokuBoard = new SudokuModel()
             {
                 Sudoku = new System.Collections.Generic.List<System.Collections.Generic.List<CellModel>>()
@@ -816,7 +1276,7 @@ namespace SudokuSolverAlgorithm
 
             };
             //SolveCalculatelistOfOptions(SudokuBoard);
-            var solvedboard = SolveCalculatelistOfOptions(SudokuBoard);
+            var solvedboard = SolveGuessing4(GuessingSudoku);
             ;
 
             string firstrow = "";
